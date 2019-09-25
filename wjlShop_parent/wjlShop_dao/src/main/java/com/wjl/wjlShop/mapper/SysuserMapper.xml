@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wjl.wjlShop.dao.SysuserDao">
+
+    <resultMap id="sysuserMap" type="Sysuser">
+        <!-- property：主键在pojo中的属性名 -->
+        <!-- column：主键在数据库中的列名 -->
+        <id property="id" column="id"/>
+        <result column="name" property="name"/>
+        <result column="login_name" property="loginName"/>
+        <result column="password" property="password"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="is_valid" property="isValid"/>
+        <result column="create_date" property="createDate"/>
+        <association property="role" javaType="Role" column="role_id">
+            <id column="r.id" property="id"/>
+            <result column="role_name" property="name"/>
+        </association>
+    </resultMap>
+
+    <select id="selectAll" resultMap="sysuserMap">
+        select s.id,
+        s.name,
+        s.login_name,
+        s.password,
+        s.phone,
+        s.email,
+        s.is_valid,
+        s.create_date,
+        r.id 'r.id',
+        r.role_name
+        from t_sysuser s
+        left join t_role r
+        on  s.role_id = r.id
+    </select>
+
+    <insert id="insert" parameterType="Sysuser">
+    insert into t_sysuser
+          (name, login_name, password, phone, email, is_valid, create_date, role_id)
+        values
+          (#{name},#{loginName},#{password},#{phone},#{email},#{isValid},#{createDate},#{role.id})
+    </insert>
+
+    <select id="IsExistLoginName" parameterType="java.lang.String" resultType="boolean">
+        select login_name from t_sysuser
+        where login_name = #{loginName}
+    </select>
+
+    <select id="selectByParams" parameterType="com.wjl.wjlShop.param.SysuserParam" resultMap="sysuserMap">
+        select s.id,s.name,s.login_name,s.password,s.phone,s.email,s.is_valid,s.create_date,s.role_id,r.id 'r.id',r.role_name
+        from t_sysuser s
+        left join t_role r on r.id = s.role_id
+        <where>
+            <if test="name!=null and name!=''">
+                and name like concat(concat('%',#{name}),'%')
+            </if>
+            <if test="loginName!=null and loginName!=''">
+                and login_name like concat(concat('%',#{loginName}),'%')
+            </if>
+            <if test="phone!=null and phone!=''">
+                and phone=#{phone}
+            </if>
+            <if test="role!=null and role!=-1">
+                and role_id=#{role}
+            </if>
+            <if test="isValid!=null and isValid!=-1">
+                and is_valid=#{isValid}
+            </if>
+        </where>
+    </select>
+
+    <update id="updateStatus">
+        update t_sysuser
+        set is_valid=#{isValid}
+        where id=#{id}
+    </update>
+
+    <select id="selectStatusById" resultType="java.lang.Integer" >
+        select is_valid
+        from t_sysuser
+        where id = #{id}
+    </select>
+</mapper>

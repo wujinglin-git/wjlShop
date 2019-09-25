@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wjl.wjlShop.dao.ProductDao">
+
+    <!-- 使用association定义关联的单个对象的封装规则 -->
+    <resultMap type="Product" id="productMap">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="price" property="price"/>
+        <result column="info" property="info"/>
+        <result column="image" property="image"/>
+        <!-- association可以指定联合的javaBean对象
+            property="dept" 指定哪个属性是联合的对象
+            javaType: 指定这个属性对象的类型 (不能省略)
+        -->
+        <association property="productType" javaType="productType" column="product_type_id">
+            <id  property="id" column="product_type_id"/>
+        </association>
+    </resultMap>
+
+    <resultMap type="Product" id="productMap2">
+        <!-- property：主键在pojo中的属性名 -->
+        <!-- column：主键在数据库中的列名 -->
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="price" property="price"/>
+        <result column="info" property="info"/>
+        <result column="image" property="image"/>
+
+        <association property="productType" javaType="productType" column="product_type_id">
+            <id  property="id" column="pt.id"/>
+            <result column="pt.name" property="name"/>
+            <result column="status" property="status"/>
+        </association>
+    </resultMap>
+    <sql id="productColumn">
+        id,
+        name ,
+        price,
+        info,
+        image,
+        product_type_id
+    </sql>
+
+   <insert id="insert" parameterType="Product">
+       insert into t_product
+       (name, price, info, image, product_type_id)
+       values
+      (#{name},#{price},#{info},#{image},#{productType.id})
+
+   </insert>
+
+    <select id="selectByName" resultMap="productMap">
+        select  <include refid="productColumn"/>
+        from t_product
+        where name = #{name}
+    </select>
+
+    <select id="selectAll" resultMap="productMap2">
+                                                            /*此处的单引号表示查询出来之后的列名称，如果不加的话
+                                                                左右表的列名都是 id 和 name 重复了 之前productMap2中
+                                                                列名 写成了column="pt.status"是错误的，
+                                                                    因为此处的status我没有设置别名"pt.status" 无法匹配导致
+                                                                     null数据   */
+    select p.id,p.name,p.price,p.info,p.product_type_id,pt.id 'pt.id',pt.name 'pt.name',pt.status
+    from t_product p
+    left join t_product_type pt
+    on p.product_type_id = pt.id
+    </select>
+
+    <select id="selectById" resultMap="productMap">
+        select <include refid="productColumn"/>
+        from t_product
+        where id = #{id}
+
+    </select>
+
+    <update id="update" parameterType="Product">
+         update t_product
+         set name=#{name}
+         , price=#{price}
+         ,info=#{info}
+         ,image=#{image}
+         ,product_type_id=#{productType.id}
+         where id = #{id}
+    </update>
+
+    <delete id="deleteById" >
+        delete from t_product
+        where id = #{id}
+    </delete>
+</mapper>
