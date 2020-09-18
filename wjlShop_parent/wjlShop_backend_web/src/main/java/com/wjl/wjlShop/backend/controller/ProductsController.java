@@ -10,6 +10,7 @@ import com.wjl.wjlShop.pojo.ProductType;
 import com.wjl.wjlShop.service.ProductService;
 import com.wjl.wjlShop.service.ProductTypeService;
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.fileupload.FileUploadException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,7 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +84,7 @@ public class ProductsController {
         //将VO转化为DTO
         try {
             ProductDto productDto = new ProductDto();
+            //互考
             PropertyUtils.copyProperties(productDto,productVo);
             productDto.setInputStream(productVo.getFile().getInputStream());
             //返回客户端文件系统中的原始文件名
@@ -89,12 +93,19 @@ public class ProductsController {
 
             productDto.setUploadPath(uploadPath);
             productService.add(productDto);
-            System.out.println("11");
             model.addAttribute("successMessage","添加成功");
-
-        } catch (Exception e) {
             //e.printStackTrace();
-            model.addAttribute("errorMessage",e.getMessage());
+          //  model.addAttribute("errorMessage",e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (FileUploadException e) {
+            e.printStackTrace();
         }
 
         return "forward:findAll?pageNum="+pageNum;
